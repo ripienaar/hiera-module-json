@@ -9,13 +9,13 @@ load data from any modules.  And since that relied on the site specific
 hierarchy module authors have no idea how their data in the module will be
 called in production use.
 
-This module allows module authors to specify a module specific hierarchy and
+This backend allows module authors to specify a module specific hierarchy and
 provide module specific data.  The idea being that this should be the last
 backend that gets loaded into the site hiera.
 
-This allows completely custom data to be specified with a custom hierarchy in
-by module authors that will remain active regardless of site specific Hiera
-setup and that can still be overridden by site administrators.
+This allow module authors to supply completely custom data with a custom
+hierarchy that will remain active regardless of site specific Hiera setup and
+that can still be overridden by site administrators.
 
 Configuring a module
 --------------------
