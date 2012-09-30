@@ -17,6 +17,9 @@ This allow module authors to supply completely custom data with a custom
 hierarchy that will remain active regardless of site specific Hiera setup and
 that can still be overridden by site administrators.
 
+Additionally this includes and uses a generic file cache class for Hiera which
+other file based modules can use to speed themselves up.
+
 Configuring a module
 --------------------
 

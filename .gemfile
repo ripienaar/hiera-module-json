@@ -1,0 +1,7 @@
+source :rubygems
+
+gem 'puppet', '>= 3.0.0'
+gem 'rspec'
+gem 'mocha'
+gem 'hiera'
+gem 'json'
