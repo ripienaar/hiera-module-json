@@ -1,12 +1,13 @@
 class Hiera
   module Backend
     class Module_json_backend
-      def initialize
+      def initialize(cache=nil)
         require 'json'
+        require 'hiera/filecache'
 
         Hiera.debug("Hiera Module JSON backend starting")
 
-        @cache = {}
+        @cache = cache || Filecache.new
       end
 
       def load_module_config(module_name, environment)
@@ -41,7 +42,9 @@ class Hiera
 
         Hiera.debug("Looking for data in source %s" % path)
 
-        cached_read(path, Hash, {})
+        @cache.read(path, Hash, {}) do |data|
+          JSON.parse(data)
+        end
       end
 
       def lookup(key, scope, order_override, resolution_type)
@@ -89,41 +92,6 @@ class Hiera
         end
 
         return answer
-      end
-
-      def cached_read(path, expected_type=nil, default=nil)
-        @cache[path] ||= {:data => nil, :meta => path_metadata(path)}
-
-        if !@cache[path][:data] || stale?(path)
-          @cache[path][:data] = JSON.parse(File.read(path))
-        end
-
-        unless expected_type.nil?
-          unless @cache[path][:data].is_a?(expected_type)
-            Hiera.debug("Data retrieved from %s is not a %s, skipping" % [path, expected_type])
-            @cache[path][:data] = default
-          end
-        end
-
-        @cache[path][:data]
-      end
-
-      def stale?(path)
-        meta = path_metadata(path)
-
-        @cache[path] ||= {:data => nil, :meta => nil}
-
-        if @cache[path][:meta] == meta
-          return false
-        else
-          @cache[path][:meta] = meta
-          return true
-        end
-      end
-
-      def path_metadata(path)
-        stat = File.stat(path)
-        {:inode => stat.ino, :mtime => stat.mtime, :size => stat.size}
       end
     end
   end

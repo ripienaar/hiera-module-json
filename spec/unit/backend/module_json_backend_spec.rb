@@ -6,7 +6,9 @@ class Hiera
       before do
         Hiera.stubs(:debug)
         Hiera.stubs(:warn)
-        @backend = Module_json_backend.new
+
+        @cache = mock
+        @backend = Module_json_backend.new(@cache)
       end
 
       describe "#load_module_config" do
@@ -46,7 +48,8 @@ class Hiera
 
         it "should read using the caching system" do
           File.expects(:exist?).with("/nonexisting").returns(true)
-          @backend.expects(:cached_read).with("/nonexisting", Hash, {}).returns({"rspec" => true})
+          @cache.expects(:read).with("/nonexisting", Hash, {}).yields('{"rspec":true}').returns({"rspec" => true})
+
           @backend.load_data("/nonexisting").should == {"rspec" => true}
         end
       end
@@ -104,55 +107,6 @@ class Hiera
           @backend.expects(:load_data).with(File.join("/nonexisting", "data", "two.json")).returns({"rspec" => {"two" => "2"}})
 
           @backend.lookup("rspec", scope, nil, :hash).should == {"one"=>"1", "two"=>"2"}
-        end
-      end
-
-      describe "#cached_read" do
-        it "should cache and read data" do
-          File.expects(:read).with("/nonexisting").returns('{"rspec":1}')
-          @backend.expects(:path_metadata).returns(File.stat(__FILE__)).once
-          @backend.expects(:stale?).once.returns(false).once
-
-          @backend.cached_read("/nonexisting").should == {"rspec" => 1}
-          @backend.cached_read("/nonexisting").should == {"rspec" => 1}
-        end
-
-        it "should support validating return types and setting defaults" do
-          File.expects(:read).with("/nonexisting").returns('{"rspec":1}')
-          JSON.expects(:parse).returns(1)
-
-          @backend.expects(:path_metadata).returns(File.stat(__FILE__))
-
-          Hiera.expects(:debug).with(regexp_matches(/is not a Hash, skipping/))
-
-          @backend.cached_read("/nonexisting", Hash, {"rspec" => 1}).should == {"rspec" => 1}
-        end
-      end
-
-      describe "#stale?" do
-        it "should return false when the file has not changed" do
-          stat = File.stat(__FILE__)
-
-          @backend.stubs(:path_metadata).returns(stat)
-          @backend.stale?("/nonexisting").should == true
-          @backend.stale?("/nonexisting").should == false
-        end
-
-        it "should update and return true when the file changed" do
-          @backend.expects(:path_metadata).returns({:inode => 1, :mtime => Time.now, :size => 1})
-          @backend.stale?("/nonexisting").should == true
-          @backend.expects(:path_metadata).returns({:inode => 2, :mtime => Time.now, :size => 1})
-          @backend.stale?("/nonexisting").should == true
-        end
-      end
-
-      describe "#path_metadata" do
-        it "should return the right data" do
-          stat = File.stat(__FILE__)
-
-          File.expects(:stat).with("/nonexisting").returns(stat)
-
-          @backend.path_metadata("/nonexisting").should == {:inode => stat.ino, :mtime => stat.mtime, :size => stat.size}
         end
       end
     end

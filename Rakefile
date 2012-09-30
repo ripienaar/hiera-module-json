@@ -4,7 +4,7 @@ require 'rspec/core/rake_task'
 
 spec = Gem::Specification.new do |s|
   s.name = "hiera-module-json"
-  s.version = "0.0.1"
+  s.version = "0.0.2"
   s.author = "R.I.Pienaar"
   s.email = "rip@devco.net"
   s.homepage = "https://github.com/ripienaar/hiera-puppet"

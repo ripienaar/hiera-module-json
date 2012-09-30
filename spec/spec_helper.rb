@@ -6,6 +6,8 @@ require 'mocha'
 require 'hiera'
 require 'puppet'
 require 'ostruct'
+require 'json'
+require 'hiera/filecache'
 require 'hiera/backend/module_json_backend'
 
 RSpec.configure do |config|
